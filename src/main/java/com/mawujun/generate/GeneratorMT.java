@@ -16,6 +16,7 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -24,12 +25,14 @@ import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.Table;
+import javax.validation.Valid;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import com.sunland.qogir.admin.domain.DictItem;
 import com.sunland.qogir.common.utils.FK;
 
 public class GeneratorMT {
@@ -110,7 +113,7 @@ public class GeneratorMT {
 			generaterRepository(entity,targetMDir);
 			generaterService(entity,targetMDir);
 			generaterController(entity,targetMDir);
-			generaterDao(entity,targetMDir);
+			//generaterDao(entity,targetMDir);
 			//generaterCSRD(entity,targetMDir,basePackage);
 		}
 		//generaterDao(targetMDir);
@@ -122,23 +125,23 @@ public class GeneratorMT {
 				generaterRepository(entity,targetMDir);
 				generaterService(entity,targetMDir);
 				generaterController(entity,targetMDir);
-				generaterDao(entity,targetMDir);
+				//generaterDao(entity,targetMDir);
 			}
 			//generaterDao(targetMDir);
     }
 	public void generaterRepository(Class entity,String targetMDir) throws IOException {
 		
 		//File dir=new File(targetMDir+File.separatorChar+this.targetPackage.replace('.', File.separatorChar)+File.separatorChar);
-		File dir=new File(targetMDir+File.separatorChar+"repository"+File.separatorChar);
+		File dir=new File(targetMDir+File.separatorChar+"repo"+File.separatorChar);
 		if(!dir.exists()) {
 			dir.mkdirs();
 		}
-		File file=new File(dir.getAbsolutePath()+File.separatorChar+entity.getSimpleName()+"Repository.java");
+		File file=new File(dir.getAbsolutePath()+File.separatorChar+entity.getSimpleName()+"Repo.java");
 		if(!file.exists()){
     		file.createNewFile();
     	}
     	FileWriter fileWrite=new FileWriter(file);
-    	fileWrite.append("package "+this.targetPackage+".repository;\n");
+    	fileWrite.append("package "+this.targetPackage+".repo;\n");
     	fileWrite.append("import org.springframework.data.jpa.repository.JpaRepository;\n");
     	fileWrite.append("import org.springframework.stereotype.Repository;\n");
 
@@ -149,7 +152,7 @@ public class GeneratorMT {
     	fileWrite.append("					请按照业务需求自行修改\n");
     	fileWrite.append("********************************************************************************/\n");
     	fileWrite.append("@Repository\n");
-    	fileWrite.append("public interface "+entity.getSimpleName()+"Repository extends JpaRepository<"+entity.getSimpleName()+", String>{ \n");
+    	fileWrite.append("public interface "+entity.getSimpleName()+"Repo extends JpaRepository<"+entity.getSimpleName()+", String>{ \n");
     	fileWrite.append("\n");
     	fileWrite.append("}\n");
     	fileWrite.close();
@@ -167,7 +170,7 @@ public class GeneratorMT {
     	}
     	FileWriter fileWrite=new FileWriter(file);
     	fileWrite.append("package "+this.targetPackage+".dao;\n");
-    	fileWrite.append("import com.sunland.qoqir.common.dao.AbstractDao;\n");
+    	fileWrite.append("import com.sunland.qogir.common.dao.AbstractDao;\n");
     	fileWrite.append("import org.springframework.stereotype.Repository;\n");
 
     	fileWrite.append("import "+entity.getName()+";\n");
@@ -196,7 +199,7 @@ public class GeneratorMT {
 //    	fileWrite.append("import javax.persistence.EntityManager;\n");
 //    	fileWrite.append("import javax.persistence.PersistenceContext;\n");
 //    	fileWrite.append("import org.springframework.stereotype.Repository;\n");
-//    	fileWrite.append("import com.sunland.qoqir.common.dao.BaseDao;\n");
+//    	fileWrite.append("import com.sunland.qogir.common.dao.BaseDao;\n");
 //
 //    	//fileWrite.append("import "+entity.getName()+";\n");
 //    	fileWrite.append("/*******************************************************************************\n");
@@ -218,7 +221,7 @@ public class GeneratorMT {
 	public void generaterService(Class entity,String targetMDir) throws IOException {
 		String simpleName=entity.getSimpleName();
 		String simpleName_uncapitalize=StringUtils.uncapitalize(simpleName);
-		String repository=simpleName_uncapitalize+"Repository";
+		String repository=simpleName_uncapitalize+"Repo";
 		
 		//File dir=new File(targetMDir+File.separatorChar+this.targetPackage.replace('.', File.separatorChar)+File.separatorChar);
 		File dir=new File(targetMDir+File.separatorChar+"service"+File.separatorChar);
@@ -235,6 +238,7 @@ public class GeneratorMT {
     	fileWrite.append("import java.util.List;\n");
     	fileWrite.append("import org.slf4j.Logger;\n");
     	fileWrite.append("import org.slf4j.LoggerFactory;\n");
+
     	fileWrite.append("import org.springframework.beans.factory.annotation.Autowired;\n");
     	fileWrite.append("import org.springframework.data.domain.Page;\n");
     	fileWrite.append("import org.springframework.data.domain.PageRequest;\n");
@@ -242,8 +246,9 @@ public class GeneratorMT {
     	fileWrite.append("import org.springframework.stereotype.Service;\n");
     	fileWrite.append("import org.springframework.transaction.annotation.Transactional;\n");
     	fileWrite.append("import org.springframework.data.domain.Example;\n");
+    	fileWrite.append("import java.util.Optional;\n");
     	
-    	fileWrite.append("import com.sunland.qoqir.repository."+simpleName+"Repository;\n");
+    	fileWrite.append("import com.sunland.qogir.repo."+simpleName+"Repo;\n");
     	fileWrite.append("\n");
     	fileWrite.append("import "+entity.getName()+";\n");
     	fileWrite.append("/*******************************************************************************\n");
@@ -256,15 +261,20 @@ public class GeneratorMT {
     	fileWrite.append("public class "+simpleName+"Service   {");fileWrite.append("\n");
     	fileWrite.append("	private static Logger logger = LoggerFactory.getLogger("+simpleName+"Service.class);\n");
     	fileWrite.append("	@Autowired");fileWrite.append("\n");
-    	fileWrite.append("	private "+simpleName+"Repository "+simpleName_uncapitalize+"Repository;");fileWrite.append("\n");
+    	fileWrite.append("	private "+simpleName+"Repo "+simpleName_uncapitalize+"Repo;");fileWrite.append("\n");
     	fileWrite.append("	public "+simpleName+" get(String entityId) {");fileWrite.append("\n");
-    	fileWrite.append("		return "+simpleName_uncapitalize+"Repository.getOne(entityId);");fileWrite.append("\n");
+    	fileWrite.append("		Optional<"+simpleName+"> option= "+simpleName_uncapitalize+"Repo.findById(entityId);");fileWrite.append("\n");
+    	fileWrite.append("		if(option.isPresent()) {");fileWrite.append("\n");
+    	fileWrite.append("			return option.get();");fileWrite.append("\n");
+    	fileWrite.append("		} else {");fileWrite.append("\n");
+    	fileWrite.append("			return null;");fileWrite.append("\n");
+    	fileWrite.append("		}");fileWrite.append("\n");
     	fileWrite.append("	}");fileWrite.append("\n");
     	fileWrite.append("	public void create("+simpleName+" entity) {");fileWrite.append("\n");
-    	fileWrite.append("		"+simpleName_uncapitalize+"Repository.save(entity);");fileWrite.append("\n");
+    	fileWrite.append("		"+simpleName_uncapitalize+"Repo.save(entity);");fileWrite.append("\n");
     	fileWrite.append("	}");fileWrite.append("\n");
     	fileWrite.append("	public void update("+simpleName+" entity) {");fileWrite.append("\n");
-    	fileWrite.append("		"+simpleName_uncapitalize+"Repository.save(entity);");fileWrite.append("\n");
+    	fileWrite.append("		"+simpleName_uncapitalize+"Repo.save(entity);");fileWrite.append("\n");
     	fileWrite.append("	}");fileWrite.append("\n");
 
     	fileWrite.append("	public void delete(String entityId) {");fileWrite.append("\n");
@@ -278,12 +288,12 @@ public class GeneratorMT {
     	fileWrite.append("		}");fileWrite.append("\n");
     	fileWrite.append("	}");fileWrite.append("\n");
     	
-    	fileWrite.append("	public List<"+simpleName+"> findAll() {");fileWrite.append("\n");
+    	fileWrite.append("	public List<"+simpleName+"> list() {");fileWrite.append("\n");
     	fileWrite.append("		return "+repository+".findAll();");fileWrite.append("\n");
     	fileWrite.append("	}");fileWrite.append("\n");
-    	fileWrite.append("	public  Page<"+simpleName+"> findAll("+simpleName+" entity,int page,int size) {");fileWrite.append("\n");
+    	fileWrite.append("	public  Page<"+simpleName+"> queryPage("+simpleName+" entity,int pageNumber,int pageSize) {");fileWrite.append("\n");
     	fileWrite.append("		Example<"+simpleName+"> example=Example.of(entity);");fileWrite.append("\n");
-    	fileWrite.append("		Pageable pageable=PageRequest.of(page, size);");fileWrite.append("\n");
+    	fileWrite.append("		Pageable pageable=PageRequest.of(pageNumber, pageSize);");fileWrite.append("\n");
     	fileWrite.append("		return "+repository+".findAll(example, pageable);");fileWrite.append("\n");
     	fileWrite.append("	}");fileWrite.append("\n");
     	
@@ -304,7 +314,7 @@ public class GeneratorMT {
 	public void generaterController(Class entity,String targetMDir) throws IOException {
 		String simpleName=entity.getSimpleName();
 		String simpleName_uncapitalize=StringUtils.uncapitalize(simpleName);
-		String repository=simpleName_uncapitalize+"Repository";
+
 		
 		//File dir=new File(targetMDir+File.separatorChar+this.targetPackage.replace('.', File.separatorChar)+File.separatorChar);
 		File dir=new File(targetMDir+File.separatorChar+"controller"+File.separatorChar);
@@ -319,16 +329,19 @@ public class GeneratorMT {
     	fileWrite.append("package "+this.targetPackage+".controller;\n");
     	fileWrite.append("import "+entity.getName()+";\n");
     	fileWrite.append("import java.util.List;\n");
+    	fileWrite.append("import javax.validation.Valid;\n");
     	fileWrite.append("import org.springframework.beans.factory.annotation.Autowired;\n");
     	fileWrite.append("import org.springframework.web.bind.annotation.RequestBody;\n");
     	fileWrite.append("import org.springframework.stereotype.Controller;\n");
     	fileWrite.append("import org.springframework.web.bind.annotation.RequestMapping;\n");
     	fileWrite.append("import org.springframework.web.bind.annotation.ResponseBody;\n");
-    	fileWrite.append("import com.sunland.qoqir.common.utils.ResponseData;\n");
+    	fileWrite.append("import com.sunland.qogir.common.utils.ResponseData;\n");
+    	
+    	fileWrite.append("import io.swagger.annotations.Api;\n");
     	fileWrite.append("import io.swagger.annotations.ApiImplicitParam;\n");
     	fileWrite.append("import io.swagger.annotations.ApiImplicitParams;\n");
     	fileWrite.append("import io.swagger.annotations.ApiOperation;\n");
-    	fileWrite.append("import com.sunland.qoqir.service."+simpleName+"Service;\n");
+    	fileWrite.append("import com.sunland.qogir.service."+simpleName+"Service;\n");
     	fileWrite.append("	\n");
     	fileWrite.append("	\n");
     	fileWrite.append("/*******************************************************************************\n");
@@ -359,7 +372,7 @@ public class GeneratorMT {
     	fileWrite.append("	@ApiOperation(value = \"创建新对象\", notes = \"\",httpMethod=\"POST\")  \n");
     	fileWrite.append("	@RequestMapping(value=\"/create\")\n");
     	fileWrite.append("	@ResponseBody\n");
-    	fileWrite.append("	public ResponseData create(@RequestBody "+simpleName+" entity) {\n");
+    	fileWrite.append("	public ResponseData create(@Valid @RequestBody "+simpleName+" entity) {\n");
     	fileWrite.append("		"+simpleName_uncapitalize+"Service.create(entity);\n");
     	fileWrite.append("		return ResponseData.getInstance().setData(entity);\n");
     	fileWrite.append("	}\n");
@@ -367,7 +380,7 @@ public class GeneratorMT {
     	fileWrite.append("	@ApiOperation(value = \"更新对象\", notes = \"\",httpMethod=\"POST\") \n");
     	fileWrite.append("	@RequestMapping(value=\"/update\")\n");
     	fileWrite.append("	@ResponseBody\n");
-    	fileWrite.append("	public ResponseData update(@RequestBody "+simpleName+" entity) {\n");
+    	fileWrite.append("	public ResponseData update(@Valid @RequestBody "+simpleName+" entity) {\n");
     	fileWrite.append("		"+simpleName_uncapitalize+"Service.update(entity);\n");
     	fileWrite.append("		return ResponseData.getInstance().setData(entity);\n");
     	fileWrite.append("	}\n");
@@ -391,10 +404,10 @@ public class GeneratorMT {
     	fileWrite.append("	}\n");
     	fileWrite.append("	\n");
     	fileWrite.append("	@ApiOperation(value = \"查询所有对象\", notes = \"\",httpMethod=\"POST\") \n");
-    	fileWrite.append("	@RequestMapping(value=\"/findAll\")\n");
+    	fileWrite.append("	@RequestMapping(value=\"/list\")\n");
     	fileWrite.append("	@ResponseBody\n");
-    	fileWrite.append("	public ResponseData findAll() {\n");
-    	fileWrite.append("		List<"+simpleName+"> list="+simpleName_uncapitalize+"Service.findAll();\n");
+    	fileWrite.append("	public ResponseData list() {\n");
+    	fileWrite.append("		List<"+simpleName+"> list="+simpleName_uncapitalize+"Service.list();\n");
     	fileWrite.append("		return ResponseData.getInstance().setData(list);\n");
     	fileWrite.append("	}\n");
     	fileWrite.append("	\n");

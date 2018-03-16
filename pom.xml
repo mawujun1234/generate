@@ -16,5 +16,10 @@
 
   <dependencies>
     <!-- 是一个独立的项目，所有依赖都从其他项目拷贝过来，只依赖domain类，通过手工添加过来，然后动态生成就可以了 -->
+    <dependency>
+			<groupId>com.sunland</groupId>
+			<artifactId>common-core</artifactId>
+			<version>1.0-SNAPSHOT</version>
+		</dependency>
   </dependencies>
 </project>

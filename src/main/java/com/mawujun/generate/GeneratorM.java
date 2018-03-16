@@ -12,13 +12,13 @@ public class GeneratorM {
 		String scan_package="com.sunland";
 		String save_package="com.sunland.qogir.common.utils";//保存的包名
 		//String project_src=generatorMT.getClass().getResource("/").getPath()+"../../src/main/java";
-		String project_src="E:\\workspace\\zhzj\\qogir-common\\src\\main\\java";
+		String project_src="E:\\workspace\\zhzj\\commons\\common-core\\src\\main\\java";
 		generatorMT.generateM(scan_package,project_src,save_package);
 		
 		
-		generatorMT.generateFK(scan_package,"E:\\workspace\\zhzj\\qogir-common\\gen");
+		generatorMT.generateFK(scan_package,"E:\\workspace\\zhzj\\misc\\msic-admin\\gen");
 		
-		generatorMT.generaterCSRD("com.sunland.qogir","E:\\workspace\\zhzj\\qogir-common\\qoqw-common\\gen","com.sunland.qogir");
+		generatorMT.generaterCSRD("com.sunland.qogir","E:\\workspace\\zhzj\\misc\\msic-admin\\gen","com.sunland.qogir");
 		//generatorMT.generaterCSRD("E:\\workspace\\zhzj\\zhzj\\qoqw-common\\gen","com.sunland.qoqw",Preinstall.class,Camera.class,PreinstallList.class);
 	}
 }
