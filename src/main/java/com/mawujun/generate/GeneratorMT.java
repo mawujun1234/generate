@@ -2,6 +2,7 @@ package com.mawujun.generate;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
@@ -11,12 +12,12 @@ import java.net.URLDecoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -25,15 +26,22 @@ import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.Table;
-import javax.validation.Valid;
 
+import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFCellStyle;
+import org.apache.poi.hssf.usermodel.HSSFFont;
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import com.sunland.qogir.admin.domain.DictItem;
 import com.sunland.qogir.common.utils.FK;
+
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 
 public class GeneratorMT {
 	Logger logger = LoggerFactory.getLogger(GeneratorMT.class);
@@ -103,6 +111,184 @@ public class GeneratorMT {
 		List<Class> entities=getClasssFromPackage(packageName);
 		generaterCSRD(entities,targetMDir,basePackage);
 	}
+	/**
+	 * 生成源数据表，字段名称解释
+	 * @param packageName
+	 * @param targetMDir
+	 * @param basePackage
+	 * @throws IOException
+	 */
+	public void generaterExcel(String packageName,String filepath) throws IOException {
+		Assert.notNull(packageName);
+		Assert.notNull(filepath);
+		//Assert.notNull(basePackage);
+		//this.targetPackage=basePackage;
+		HSSFWorkbook workbook = new HSSFWorkbook();
+		
+		List entities=getClasssFromPackage(packageName);
+		//Collections.sort(entities);//entities.sort(c);
+		generaterExcel(workbook,entities);
+		
+		File file=new File(filepath);
+		FileOutputStream out=new FileOutputStream(file);
+		workbook.write(out);
+        workbook.close();
+	}
+	
+    public void generaterExcel(HSSFWorkbook workbook,List<Class> entities) throws IOException{
+    	HSSFCellStyle cellStyle = workbook.createCellStyle();
+    	HSSFFont cellFont = workbook.createFont();
+    	cellFont.setBoldweight(HSSFFont.BOLDWEIGHT_BOLD);
+    	cellStyle.setFont(cellFont);
+    	
+    	
+       
+        for(Class clazz:entities) {
+        	 int rowint=0;
+        	// 生成一个(带标题)表格
+        	ApiModel apiModel=(ApiModel)clazz.getAnnotation(ApiModel.class);
+    		if(apiModel==null){
+    			throw new NullPointerException(clazz.getClass()+"的ApiModel注解没有设置");
+    		}
+    		System.out.println(apiModel.value()+"==="+clazz.getName());
+            HSSFSheet sheet = workbook.createSheet(apiModel.value());
+            
+        	Table annoation=(Table)clazz.getAnnotation(annotationTable);
+    		if(annoation==null){
+    			throw new NullPointerException(clazz.getClass()+"的Table注解没有设置");
+    		}
+    		HSSFRow row0 = sheet.createRow(rowint++);
+    		HSSFCell cell00=row0.createCell(0);
+    		cell00.setCellStyle(cellStyle);
+    		cell00.setCellValue("表名称");
+    		HSSFCell cell01=row0.createCell(1);
+    		//cell01.setCellStyle(cellStyle);
+    		cell01.setCellValue(annoation.name());
+    		
+    		HSSFRow row1 = sheet.createRow(rowint++);
+    		HSSFCell cell10=row1.createCell(0);
+    		cell10.setCellStyle(cellStyle);
+    		cell10.setCellValue("实体名称");
+    		HSSFCell cell11=row1.createCell(1);
+    		//cell11.setCellStyle(cellStyle);
+    		cell11.setCellValue(clazz.getName());
+    		
+    		//=============================================
+    		
+    		HSSFRow row2 = sheet.createRow(rowint++);
+    		HSSFCell cell20=row2.createCell(0);
+    		cell20.setCellStyle(cellStyle);
+    		cell20.setCellValue("中文名称");
+    		HSSFCell cell21=row2.createCell(1);
+    		//cell21.setCellStyle(cellStyle);
+    		cell21.setCellValue(apiModel.value());
+    		
+    		
+    		HSSFRow rowtitle = sheet.createRow(rowint++);
+    		int cellint=0;
+    		HSSFCell cell=rowtitle.createCell(cellint++);
+    		cell.setCellStyle(cellStyle);
+    		cell.setCellValue("序号");
+    		cell=rowtitle.createCell(cellint++);
+    		cell.setCellStyle(cellStyle);
+    		cell.setCellValue("列名称");
+//    		cell=rowtitle.createCell(cellint++);
+//    		cell.setCellStyle(cellStyle);
+//    		cell.setCellValue("字段名称");
+    		cell=rowtitle.createCell(cellint++);
+    		cell.setCellStyle(cellStyle);
+    		cell.setCellValue("中文描述");
+    		
+    		
+    		Set<String> existField=new HashSet<String>();
+    		 int index=1;
+     		List<Field> fields= getClassField(clazz);
+              for (Field field : fields) { //完全等同于上面的for循环
+                  //System.out.println(field.getName()+" "+field.getType());
+             	 if(!existField.contains(field.getName())){
+             		 existField.add(field.getName());
+             	 } else {
+             		 continue;
+             	 }
+             	 logger.info(field.getName());
+             	 
+             	//生成列名
+         		HSSFRow rowcolumn = sheet.createRow(rowint++);
+         		cellint=0;
+         		cell=rowcolumn.createCell(cellint++);
+         		cell.setCellValue(index);index++;
+         		//cell.setCellStyle(cellStyle);
+         		//cell.setCellValue("中文描述");
+             	
+         		cell=rowcolumn.createCell(cellint++);//列名称
+         		 Column columnAnnotation=(Column)field.getAnnotation(Column.class);
+     			 if(columnAnnotation==null || (columnAnnotation!=null && columnAnnotation.name().equals(""))){
+     				cell.setCellValue(field.getName());
+     			 } else {
+     				cell.setCellValue(columnAnnotation.name());
+     			 }
+     			 
+     			cell=rowcolumn.createCell(cellint++);//中文名称
+     			ApiModelProperty apiModelProperty=(ApiModelProperty)field.getAnnotation(ApiModelProperty.class);
+     			if(apiModelProperty==null || (apiModelProperty!=null && apiModelProperty.value().equals(""))){
+     				cell.setCellValue(field.getName());
+     			 } else {
+     				cell.setCellValue(apiModelProperty.value());
+     			 }
+     			
+//             	 Annotation embeddedIdAnnotataion=field.getAnnotation(EmbeddedId.class);
+//             	 //是复合主键的情况下
+//             	 if(embeddedIdAnnotataion!=null){
+////             		 Class<?> fieldClass=field.getType();
+////             		 fileWrite.append("	 /**\n");
+////                 	 fileWrite.append("	 * 这个是复合主键。里面的是复合组件的组成列的列名\n");
+////                 	 fileWrite.append("	 */\n");
+////                 	 fileWrite.append("	public static final class "+fieldClass.getSimpleName()+" {\n");
+////                 	 //Field[] embeddedIdFields = fieldClass.getDeclaredFields();
+////                 	 List<Field> embeddedIdFields= getClassField(fieldClass);
+////                 	 for (Field embeddedIdfield : embeddedIdFields) { 
+////                 		 Column columnAnnotation=(Column)embeddedIdfield.getAnnotation(Column.class);
+////                 		 if(columnAnnotation==null || (columnAnnotation!=null && columnAnnotation.name().equals(""))){
+////             				 fileWrite.append("		public static final String "+embeddedIdfield.getName()+"=\""+embeddedIdfield.getName()+"\";\n");
+////             			 } else {
+////             				 fileWrite.append("		public static final String "+columnAnnotation.name()+"=\""+columnAnnotation.name()+"\";\n");
+////             			 }
+////                 	 }
+////                 	 fileWrite.append("			\n");
+////                 	 fileWrite.append("	}\n");
+//             	 } else if(isBaseType(field.getType()) || field.getType().isEnum()){
+//             			 
+//             			 Column columnAnnotation=(Column)field.getAnnotation(Column.class);
+//             			 if(columnAnnotation==null || (columnAnnotation!=null && columnAnnotation.name().equals(""))){
+//             				cell.setCellValue(field.getName());
+//             			 } else {
+//             				cell.setCellValue(columnAnnotation.name());
+//             			 }
+//                     	
+//                  } else if(!isOf(field.getType(),Map.class) && !isOf(field.getType(),Collection.class)){ 
+////                     	 JoinColumn columnAnnotation=(JoinColumn)field.getAnnotation(Column.class);
+////                     	 if(columnAnnotation==null || (columnAnnotation!=null && columnAnnotation.name().equals(""))){
+////                     		 fileWrite.append("	/**\n");
+////                         	 fileWrite.append("	* 访问外键的列名，用于sql的时候，返回的是"+field.getName()+"_id\n");
+////                         	 fileWrite.append("	*/\n");
+////                         	 fileWrite.append("	public static final String "+field.getName()+"_id=\""+field.getName()+"_id\";\n");
+////                     	 } else {
+////                     		 fileWrite.append("	/**\n");
+////                         	 fileWrite.append("	* 访问外键的列名，用于sql的时候，返回的是"+columnAnnotation.name()+"_id\n");
+////                         	 fileWrite.append("	*/\n");
+////                         	 fileWrite.append("	public static final String "+columnAnnotation.name()+"=\""+columnAnnotation.name()+"\";\n");
+////                     	 }
+//                     	 
+//                  }     
+//                 
+              }
+    		
+    		
+    		
+        }
+        
+    	
+    }
 	  /**
      * 生成controller，service，resository，dao这几个类
 	 * @throws IOException 

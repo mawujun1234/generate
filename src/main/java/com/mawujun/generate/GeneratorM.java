@@ -20,5 +20,8 @@ public class GeneratorM {
 		
 		generatorMT.generaterCSRD("com.sunland.qogir","E:\\workspace\\zhzj\\misc\\msic-admin\\gen","com.sunland.qogir");
 		//generatorMT.generaterCSRD("E:\\workspace\\zhzj\\zhzj\\qoqw-common\\gen","com.sunland.qoqw",Preinstall.class,Camera.class,PreinstallList.class);
+		
+		generatorMT.generaterExcel("com.sunland.qogir.quality.domain","C:\\Users\\mawujun\\Desktop\\质量表结构.xls");
+		
 	}
 }

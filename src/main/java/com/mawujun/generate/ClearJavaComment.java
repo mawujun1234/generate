@@ -16,6 +16,8 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
 
+import io.swagger.annotations.ApiModelProperty;
+
 public class ClearJavaComment {
 	/** 根目录 */  
     //public static String rootDir = "D:\\workspace\\proj_map\\src\\com";  
@@ -113,6 +115,7 @@ public class ClearJavaComment {
               //patterns.put("\\/\\/[^\\n]*|\\/\\*([^\\*^\\/]*|[\\*^\\/*]*|[^\\**\\/]*)*\\*+\\/", "");  
              // String s = target.replaceAll("\\/\\/[^\\n]*|\\/\\*([^\\*^\\/]*|[\\*^\\/*]*|[^\\**\\/]*)*\\*+\\/", "");
               //patterns.put("/\\*(\\s*\\*?\\s*.*\\s*?)*", "");  
+              patterns.put("@ApiModelProperty.*", "");
      	} else if( filePathAndName.lastIndexOf(".xml")!=-1) {
      		patterns.put("(?s)<!--.*?-->", ""); //xml中的<!-- -->注释
      	} else if(filePathAndName.lastIndexOf(".properties")!=-1) {
