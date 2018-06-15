@@ -12,7 +12,6 @@ import java.net.URLDecoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -26,6 +25,7 @@ import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFCellStyle;
@@ -135,7 +135,7 @@ public class GeneratorMT {
         workbook.close();
 	}
 	
-    public void generaterExcel(HSSFWorkbook workbook,List<Class> entities) throws IOException{
+    public void generaterExcel(HSSFWorkbook workbook,List<Class> entities) throws IOException {
     	HSSFCellStyle cellStyle = workbook.createCellStyle();
     	HSSFFont cellFont = workbook.createFont();
     	cellFont.setBoldweight(HSSFFont.BOLDWEIGHT_BOLD);
@@ -204,6 +204,11 @@ public class GeneratorMT {
     		 int index=1;
      		List<Field> fields= getClassField(clazz);
               for (Field field : fields) { //完全等同于上面的for循环
+            	Transient transientAnnotation=(Transient)field.getAnnotation(Transient.class);
+           		if(transientAnnotation!=null) {
+           			continue;
+           		}
+           		
                   //System.out.println(field.getName()+" "+field.getType());
              	 if(!existField.contains(field.getName())){
              		 existField.add(field.getName());
@@ -220,6 +225,9 @@ public class GeneratorMT {
          		//cell.setCellStyle(cellStyle);
          		//cell.setCellValue("中文描述");
              	
+         		
+         		
+         		
          		cell=rowcolumn.createCell(cellint++);//列名称
          		 Column columnAnnotation=(Column)field.getAnnotation(Column.class);
      			 if(columnAnnotation==null || (columnAnnotation!=null && columnAnnotation.name().equals(""))){
